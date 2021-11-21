@@ -1,8 +1,18 @@
 <template>
     <div id="wrapper">
         <b-button id="add" @click="add">+</b-button>
-        <input type="text" id="box" :key="b" v-for="b in box" :style="{top:b.x, left:b.y}">
-           
+        <div class="boxwrap" :key="b" v-for="b in box" :id="b.id" @click="drag(b.id)"
+        :style="{left:b.x+'px', top:b.y+'px', width:b.w+'px', height:b.h+'px'}">
+            <div :style="{width:'100%', height:'20px', position:'absolute'}"></div>
+            <textarea class="box"></textarea>
+        </div>
+
+        <div class="boxwrap" :style="{left:'30px', top:'100px'}">
+            <div :style="{width:'300px', height:'20px', backgroundColor:'red'}"></div>
+            <textarea class="box"
+            :style="{width:'300px', height:'500px'}"></textarea>
+        </div>
+        
     </div>
 </template>
 <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
@@ -10,14 +20,16 @@
 export default {
     data() {
         return{
-            box : []
+            box : [],
+            x : 0,
+            y : 0
         }
     },
     name : "note",
     methods : {
         add() {
             // this.box.push({x : "30.00px", y:"30px"})
-            this.axios.post('/add',{
+            this.axios.post('/api/add',{
                 x : 30,
                 y : 30,
                 w : 100,
@@ -25,13 +37,33 @@ export default {
             }).then(res=>{
                 console.log("success")
             })
+        },
+        drag(id){
+            document.getElementById(id).onmousedown = function mouseDown(e){
+                e = e || window.event
+                if (e.button==0){
+                    this.x = e.clientX;
+                    this.y = e.clientY;
+
+                    document.onmousemove = function mouseMove(e){
+                        e = e || window.event
+
+                        var dx = this.x - e.clientX;
+                        var dy = this.y - e.clientY;
+
+                    }
+                }
+            }
+            
         }
     },
     created(){
-        this.axios.get("/load",{})
+        this.axios.get("/api")
         .then((res)=>{
-            this.box = res
-            console.log(this.box[0])
+            for(var i=0; i<res.data.length; i++){
+                res.data[i]["id"]="box"+res.data[i]["id"]
+                this.box.push(res.data[i])
+            }
         })
     }
 }
@@ -49,10 +81,12 @@ export default {
         bottom : 50px;
         right : 50px
     }
-    #box{
+    .boxwrap{
+        position: absolute;
+    }
+    .box{
         position : absolute;
-        width: 50px;
-        height: 200px;
         background-color: #5CFFEF;
+        resize: both;
     }
 </style>
