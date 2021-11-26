@@ -1,6 +1,8 @@
 <template>
     <div id="wrapper">
-        <b-icon icon="trash" class="menu" @click="display='trash'" :style="{top:'50px'}"></b-icon>
+        <div v-show="display==''" class="head">메인</div>
+        <div v-show="display=='trash'" class="head">휴지통</div>
+        <b-icon icon="trash" class="menu" @click="display='trash'" :style="{top:'70px'}"></b-icon>
         <b-icon icon="card-list"  class="menu" @click="display=''" :style="{top:'0px'}"></b-icon>
         <b-icon icon="plus" id="add" @click="display='add'" v-show="display!='add'"></b-icon>
         <!-- <b-button id="add" @click="add" v-show="display==''">+</b-button> -->
@@ -12,6 +14,7 @@
             </b-card>
         </div>
         <div v-show="display=='trash'">
+            <b-button variant="outline-secondary" id="allDel" @click="allDel">비우기</b-button>
             <b-card class="box" :key="i" v-for="(trash,i) in trashcan" :title="trash.title" :sub-title="trash.date" :id="trash.id">
                 <b-icon icon="arrow-clockwise" class="icon re" :style="{top:'0px', right:'22px'}" @click="re(trash.id)"></b-icon>
                 <b-icon icon="x" class="icon del" :style="{top:'0px', right:'0px'}" @click="del(trash.id)"></b-icon>
@@ -93,6 +96,9 @@ export default {
                 this.trashcan = res.data.trash
                 this.notes = res.data.notes
             })
+        },
+        allDel(){
+            location.href = "/api/drop"
         }
                        
     },
@@ -109,6 +115,13 @@ export default {
 <style>
     body {
         background-color : #EEF292;
+    }
+    .head{
+        font-size: 30px;
+        margin : 0 auto;
+        width : 100px;
+        text-align: center;
+        
     }
     #add{
         width : 80px;
@@ -129,9 +142,15 @@ export default {
         height: 40px;
         position : absolute;
         cursor: pointer;
+        position : fixed;
     }
     .menu:hover{
         background-color: #D3E7DD;
+    }
+    #allDel{
+        position : fixed;
+        top : 10px;
+        right: 10px;
     }
     .icon{
         width : 20px;

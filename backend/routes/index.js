@@ -87,6 +87,15 @@ router.post("/del", function(req,res){
   )
 })
 
+router.get("/drop", function(req, res){
+  connection.query(
+    `truncate trash`,
+    function(err){
+      err ? console.log(err) : res.redirect("/")
+    }
+  )
+})
+
 router.post("/re", function(req, res){
   var id = req.body.id;
   connection.query(
