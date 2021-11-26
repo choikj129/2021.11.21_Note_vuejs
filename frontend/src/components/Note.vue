@@ -1,25 +1,24 @@
 <template>
     <div id="wrapper">
-        <b-icon icon="trash" class="icon" @click="display='trash'" :style="{top:'0px', right:'0px'}"></b-icon>
-        <b-icon icon="card-list"  class="icon" @click="display=''" :style="{top:'0px', left:'0px'}"></b-icon>
-        <b-icon icon="plus" id="add" @click="display='add'" v-show="display==''"></b-icon>
+        <b-icon icon="trash" class="menu" @click="display='trash'" :style="{top:'50px'}"></b-icon>
+        <b-icon icon="card-list"  class="menu" @click="display=''" :style="{top:'0px'}"></b-icon>
+        <b-icon icon="plus" id="add" @click="display='add'" v-show="display!='add'"></b-icon>
         <!-- <b-button id="add" @click="add" v-show="display==''">+</b-button> -->
         <div id="boxwrap" v-show="display==''">
             <b-card class="box" :key="i" v-for="(note,i) in notes" :title="note.title" :sub-title="note.date" :id="note.id">
-                <b-icon icon="pencil" class="icon update" :style="{top:'0px', right:'22px'}"></b-icon>
+                <b-icon icon="pencil" class="icon update" :style="{top:'0px', right:'22px'}" @click="update(note.id, note.title, note.content)"></b-icon>
                 <b-icon icon="x" class="icon trash" :style="{top:'0px', right:'0px'}" @click="trash(note.id)"></b-icon>
-                <b-card-text class="content" v-html="note.content">
-                </b-card-text>
+                <b-card-text class="content" v-html="note.content"></b-card-text>
             </b-card>
         </div>
         <div v-show="display=='trash'">
             <b-card class="box" :key="i" v-for="(trash,i) in trashcan" :title="trash.title" :sub-title="trash.date" :id="trash.id">
-                <b-icon icon="x" class="icon del" :style="{top:'0px', right:'0px'}" @click="del"></b-icon>
-                <b-card-text class="content" v-html="trash.content">
-                </b-card-text>
+                <b-icon icon="arrow-clockwise" class="icon re" :style="{top:'0px', right:'22px'}" @click="re(trash.id)"></b-icon>
+                <b-icon icon="x" class="icon del" :style="{top:'0px', right:'0px'}" @click="del(trash.id)"></b-icon>
+                <b-card-text class="content" v-html="trash.content"></b-card-text>
             </b-card>
         </div>
-        <div id="modal" v-show="display=='add'">
+        <div id="modal" v-show="display=='add'||display=='update'">
             <b-input-group class="mt-3">
                 <b-form-input id="input" placeholder="제목"></b-form-input>
                 <b-input-group-append>
@@ -42,8 +41,9 @@ export default {
                 {id:"1",title:"", date:"2020-11-22", content:"test<br>test<br>test<br>test<br>test<br>test<br>test<br>"},
                 {id:"2",title:"마트", date:"2020-11-22", content:"testtest<br>test<br>test<br>test<br>test<br>test<br>test<br>test<br>"}
             ],
-            trashcan : [],
-            display : ""
+            trashcan : [{id:"2",title:"마트", date:"2020-11-22", content:"testtest<br>test<br>test<br>test<br>test<br>test<br>test<br>test<br>"}],
+            display : "",
+            beforeUpdate : {id:null, title:"", content:""},
         }
     },
     name : "note",
@@ -52,21 +52,47 @@ export default {
             this.display = "add"
         },
         cancel(){
-            this.display = ""
-            var i = $("#input").val()
-            var t = $("#textarea").val()
-            if (i || t){
-                location.href = `/api/add?title=${i}&content=${t}`
-                this.axios.post('/api/add',{
-                    title : i,
-                    content : t
-                }).then(res =>{
-                    this.notes = res.data
-                })
+            if (this.display=="add"){
+                this.display = ""
+                var i = $("#input").val()
+                var t = $("#textarea").val()
+                if (i || t){
+                    location.href = `/api/add?title=${i}&content=${t}`
+                }
+            }else{
+                this.display = ""
+                var i = $("#input").val()
+                var t = $("#textarea").val()
+                if (i!=this.beforeUpdate.title || t!=this.beforeUpdate.content){
+                    location.href = `/api/update?id=${this.beforeUpdate.id}&title=${i}&content=${t}`
+                }
             }
+        },
+        update(id, title, content){
+            $("#input").val(title)
+            $("#textarea").val(content)
+            this.display = "update"
+            this.beforeUpdate.id = id
+            this.beforeUpdate.title = title
+            this.beforeUpdate.content = content
         },
         trash(id){
             location.href = `/api/trash?id=`+id
+        },
+        del(id){
+            this.axios.post("/api/del",{
+                id : id
+            }).then(res => {
+                this.trashcan = res.data
+            })
+        },
+        re(id){
+            this.axios.post("/api/re",{
+                id : id
+            }).then(res => {
+                this.trashcan = res.data.trash
+                this.notes = res.data.notes
+            })
         }
                        
     },
@@ -93,11 +119,28 @@ export default {
         bottom : 50px;
         right : 50px;
         font-size: 30px;
+        cursor: pointer;
+    }
+    #add:hover {
+        background-color: #929180;
+    } 
+    .menu{
+        width : 40px;
+        height: 40px;
+        position : absolute;
+        cursor: pointer;
+    }
+    .menu:hover{
+        background-color: #D3E7DD;
     }
     .icon{
         width : 20px;
         height: 20px;
         position : absolute;
+        cursor: pointer;
+    }
+    .icon:hover{
+        background-color: #D3E7DD;
     }
     .box{
         display: block;
